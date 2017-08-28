@@ -30,8 +30,9 @@ check_submodule_status
 
 # begin the bootstrap process
 pushd ${OA_DIR}
-#    ${BASE_DIR}/openstack-ansible/scripts/bootstrap-ansible.sh
-#    openstack-ansible ${RPCD_DIR}/playbooks/ironic-pre-config.yml
+    ${BASE_DIR}/openstack-ansible/scripts/bootstrap-ansible.sh
+    ${BASE_DIR}/openstack-ansible/scripts/bootstrap-aio.sh
+    openstack-ansible ${RPCD_DIR}/playbooks/ironic-pre-config.yml
     ${BASE_DIR}/scripts/deploy.sh
     openstack-ansible ${RPCD_DIR}/playbooks/ironic-post-install-config.yml
     openstack-ansible ${RPCD_DIR}/openstack/playbooks/os-ironic-install.yml

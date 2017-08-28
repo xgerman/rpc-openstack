@@ -24,9 +24,9 @@
     - name: Setup neutron subnet
       os_subnet:
         name: "ironic-ipmi"
-        allocation_pool_start: "<NON_ALLOCATED_TFTP_RANGE_START>"
-        allocation_pool_end: "<NON_ALLOCATED_TFTP_RANGE_END>"
-        dns_nameservers: "4.4.4.4 tftp <TFTP_NETWORK>/<TFTP_NETMASK>"
+        allocation_pool_start: "172.29.233.0"
+        allocation_pool_end: "172.29.234.0"
+        dns_nameservers: "4.4.4.4 tftp 172.29.232.0/22"
 
     - name: Gather cleaning network UUID
       shell: "neutron net-list | grep tftp | awk '{print $2}'"

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 - name: Pre install config for ironic
-  hosts: ironic_all
+  hosts: localhost
   tasks:
     - name: Define networks for ironic to use
       config_template:
-        src: "/etc/openstack_deploy/openstack_user_config.yml"
-        dest: "/etc/openstack_deploy/openstack_user_config.yml"
+        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -27,8 +27,8 @@
 
     - name: Add IPs to used_ips list
       config_template:
-        src: "/etc/openstack_deploy/openstack_user_config.yml"
-        dest: "/etc/openstack_deploy/openstack_user_config.yml"
+        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -37,8 +37,8 @@
 
     - name: Setup global overrides
       config_template:
-        src: "/etc/openstack_deploy/openstack_user_config.yml"
-        dest: "/etc/openstack_deploy/openstack_user_config.yml"
+        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -47,8 +47,8 @@
 
     - name: Define group hosts
       config_template:
-        src: "/etc/openstack_deploy/openstack_user_config.yml"
-        dest: "/etc/openstack_deploy/openstack_user_config.yml"
+        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
         owner: "root"
         group: "root"
         mode: "0644"
@@ -57,8 +57,8 @@
 
     - name: Setup endpoints for swift/ironic health checks
       config_template:
-       src: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
-       dest: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
+       src: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
+       dest: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
        owner: "root"
        group: "root"
        mode: "0644"
@@ -67,68 +67,48 @@
 
     - name: Configure neutron DHCP to be non-authorative
       config_template:
-        src: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
-        dest: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
+        src: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
+        dest: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
         owner: "root"
         group: "root"
         mode: "0644"
         config_overrides: "{{ ironic_neutron_dhcp_config }}"
         config_type: "yaml"
 
-    - name: Setup neutron network
-      os_network:
-        shared: yes
-        provider_physical_network: "tftp"
-        provider_network_type: "flat tftp"
-
-
-    - name: Setup neutron subnet
-      os_subnet:
-        name: "ironic-ipmi"
-        allocation_pool_start: "<NON_ALLOCATED_TFTP_RANGE_START>"
-        allocation_pool_end: "<NON_ALLOCATED_TFTP_RANGE_END>"
-        dns_nameservers: "4.4.4.4 tftp <TFTP_NETWORK>/<TFTP_NETMASK>"
-
   vars:
     cidr_networks_ironic:
       cidr_networks:
-           tftp: "{{ tftp_network }}/{{ tftp_netmask }}"
-           ironic-ipmi: "{{ ironic-ipmi_network }}/{{ ironic-ipmi_netmask }}"
+           tftp: "172.29.232.0/22"
+           ironic-ipmi: "172.29.228.0/22"
     ironic_networks:
-      - network:
-          container_bridge: "br-ironic-ipmi"
-          container_type: "veth"
-          container_interface: "eth_ipmi"
-          ip_from_q: "ironic-ipmi"
-          type: "raw"
-          group_binds:
-          - ironic-infra_hosts
-      - network:
-          container_bridge: "br-tftp"
-          container_type: "veth"
-          container_interface: "eth_tftp"
-          ip_from_q: "ironic-ipmi"
-          type: "flat"
-          net_name: "tftp"
-          ip_from_q: "tftp"
-          group_binds:
-          - neutron_linuxbridge_agent
-          - ironic_all
+      global_networks:
+        provider_networks:
+          - network:
+            container_bridge: "br-ironic-ipmi"
+            container_type: "veth"
+            container_interface: "eth_ipmi"
+            ip_from_q: "ironic-ipmi"
+            type: "raw"
+            group_binds:
+            - ironic-infra_hosts
+          - network:
+            container_bridge: "br-tftp"
+            container_type: "veth"
+            container_interface: "eth_tftp"
+            ip_from_q: "ironic-ipmi"
+            type: "flat"
+            net_name: "tftp"
+            ip_from_q: "tftp"
+            group_binds:
+            - neutron_linuxbridge_agent
+            - ironic_all
     group_hosts_ironic:
       ironic-compute_hosts:
         infra01:
           ip: "{{ infra01_mgmt_ip }}"
-        infra02:
-          ip: "{{ infra02_mgmt_ip }}"
-        infra03:
-          ip: "{{ infra03_mgmt_ip }}"
       ironic-infra_hosts:
         infra01:
           ip: "{{ infra01_mgmt_ip }}"
-        infra02:
-          ip: "{{ infra02_mgmt_ip }}"
-        infra03:
-          ip: "{{ infra03_mgmt_ip }}"
     ironic_endpoint_config:
       extra_lb_vip_addresses:
         - <IP address>
@@ -140,3 +120,5 @@
         dhcp-ignore: "tag:!known"
         log-facility: "/var/log/neutron/dnsmasq.log"
     used_ips:
+     - "172.29.232.1,172.29.232.50"
+     - "172.29.228.1,172.29.228.50"

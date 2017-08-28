@@ -15,6 +15,19 @@
 - name: Ironic post install config
   hosts: ironic_all
   tasks:
+     - name: Setup neutron network
+      os_network:
+        shared: yes
+        provider_physical_network: "tftp"
+        provider_network_type: "flat tftp"
+
+    - name: Setup neutron subnet
+      os_subnet:
+        name: "ironic-ipmi"
+        allocation_pool_start: "<NON_ALLOCATED_TFTP_RANGE_START>"
+        allocation_pool_end: "<NON_ALLOCATED_TFTP_RANGE_END>"
+        dns_nameservers: "4.4.4.4 tftp <TFTP_NETWORK>/<TFTP_NETMASK>"
+
     - name: Gather cleaning network UUID
       shell: "neutron net-list | grep tftp | awk '{print $2}'"
       register: neutron_tftp_network_uuid

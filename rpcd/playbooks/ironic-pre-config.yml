@@ -24,6 +24,7 @@
         mode: "0644"
         config_overrides: "{{ cidr_networks_ironic }}"
         config_type: "yaml"
+        list_extend: true
 
     - name: Add IPs to used_ips list
       config_template:
@@ -32,8 +33,9 @@
         owner: "root"
         group: "root"
         mode: "0644"
-        config_overrides: "{{ used_ips }}"
+        config_overrides: "{{ used_ips_ironic }}"
         config_type: "yaml"
+        list_extend: true
 
     - name: Setup global overrides
       config_template:
@@ -44,6 +46,7 @@
         mode: "0644"
         config_overrides: "{{ ironic_networks }}"
         config_type: "yaml"
+        list_extend: true
 
     - name: Define group hosts
       config_template:
@@ -54,6 +57,7 @@
         mode: "0644"
         config_overrides: "{{ group_hosts_ironic }}"
         config_type: "yaml"
+        list_extend: true
 
     - name: Setup endpoints for swift/ironic health checks
       config_template:
@@ -81,33 +85,33 @@
            tftp: "172.29.232.0/22"
            ironic-ipmi: "172.29.228.0/22"
     ironic_networks:
-      global_networks:
+      global_overrides:
         provider_networks:
           - network:
-            container_bridge: "br-ironic-ipmi"
-            container_type: "veth"
-            container_interface: "eth_ipmi"
-            ip_from_q: "ironic-ipmi"
-            type: "raw"
-            group_binds:
-            - ironic-infra_hosts
+              container_bridge: "br-ironic-ipmi"
+              container_type: "veth"
+              container_interface: "eth_ipmi"
+              ip_from_q: "ironic-ipmi"
+              type: "raw"
+              group_binds:
+              - ironic-infra_hosts
           - network:
-            container_bridge: "br-tftp"
-            container_type: "veth"
-            container_interface: "eth_tftp"
-            ip_from_q: "ironic-ipmi"
-            type: "flat"
-            net_name: "tftp"
-            ip_from_q: "tftp"
-            group_binds:
-            - neutron_linuxbridge_agent
-            - ironic_all
+              container_bridge: "br-tftp"
+              container_type: "veth"
+              container_interface: "eth_tftp"
+              ip_from_q: "ironic-ipmi"
+              type: "flat"
+              net_name: "tftp"
+              ip_from_q: "tftp"
+              group_binds:
+              - neutron_linuxbridge_agent
+              - ironic_all
     group_hosts_ironic:
       ironic-compute_hosts:
-        infra01:
+        aio1:
           ip: "172.29.236.100"
       ironic-infra_hosts:
-        infra01:
+        aio1:
           ip: "172.29.236.100"
     ironic_endpoint_config:
       extra_lb_vip_addresses:
@@ -119,7 +123,7 @@
         dhcp-option-force: "26,1500"
         dhcp-ignore: "tag:!known"
         log-facility: "/var/log/neutron/dnsmasq.log"
-    used_ips:
+    used_ips_ironic:
       used_ips:
         - "172.29.232.1,172.29.232.50"
         - "172.29.228.1,172.29.228.50"

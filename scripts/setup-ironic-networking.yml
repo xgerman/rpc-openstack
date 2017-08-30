@@ -19,8 +19,10 @@
       blockinfile:
         dest: /opt/rpc-openstack/openstack-ansible/tests/roles/bootstrap-host/templates/osa_interfaces.cfg.j2
         block: |
+          auto eth2
           auto br-ironic-ipmi
           iface br-ironic-ipmi inet static
+              bridge_ports eth2
               bridge_stp off
               bridge_waitport 10
               bridge_fd 0

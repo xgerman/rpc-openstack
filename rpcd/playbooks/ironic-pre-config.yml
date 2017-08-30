@@ -56,13 +56,13 @@
 
     - name: Setup endpoints for swift/ironic health checks
       config_template:
-       src: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
-       dest: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
-       owner: "root"
-       group: "root"
-       mode: "0644"
-       config_overrides: "{{ ironic_endpoint_config }}"
-       config_type: "yaml"
+        src: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
+        dest: "../etc/openstack_deploy/user_osa_variables_overrides.yml"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        config_overrides: "{{ ironic_endpoint_config }}"
+        config_type: "yaml"
 
     - name: Configure neutron DHCP to be non-authorative
       config_template:
@@ -103,9 +103,9 @@
               - ironic_all
     ironic_endpoint_config:
       extra_lb_vip_addresses:
-        - "{{ ansible_eth0.ipv4.address }}"
-      ironic_openstack_api_url: "{{ ansible_eth0.ipv4.address }}:{{ ironic_service_port }}"
-      ironic_swift_endpoint: "{{ ansible_eth0.ipv4.address }}:8080"
+       - "{{ external_lb_vip_address }}"
+      ironic_openstack_api_url: "{{ external_lb_vip_address }}:{{ ironic_service_port }}"
+      ironic_swift_endpoint: "{{ external_lb_vip_address }}:8080"
     ironic_neutron_dhcp_config:
       neutron_dhcp_config:
         dhcp-option-force: "26,1500"

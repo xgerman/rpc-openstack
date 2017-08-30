@@ -15,6 +15,12 @@
 - name: Pre install config for ironic
   hosts: localhost
   tasks:
+    - name: Start the ironic network interfaces
+      command: "ifup {{ item }}"
+      with_items:
+        - br-tftp
+        - br-ironic-ipmi
+
     - name: Define networks for ironic to use
       config_template:
         src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
@@ -48,16 +54,16 @@
         config_type: "yaml"
         list_extend: true
 
-    - name: Define group hosts
-      config_template:
-        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
-        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ group_hosts_ironic }}"
-        config_type: "yaml"
-        list_extend: true
+#    - name: Define group hosts
+#      config_template:
+#        src: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+#        dest: "../../openstack-ansible/etc/openstack_deploy/openstack_user_config.yml.aio"
+#        owner: "root"
+#        group: "root"
+#        mode: "0644"
+#        config_overrides: "{{ group_hosts_ironic }}"
+#        config_type: "yaml"
+#        list_extend: true
 
     - name: Setup endpoints for swift/ironic health checks
       config_template:

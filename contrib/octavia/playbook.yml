@@ -15,16 +15,8 @@
 - name: Install Octavia
   hosts: localhost
   tasks:
-    - name: Add Overrides
-      config_template:
-        src: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
-        dest: "/etc/openstack_deploy/user_osa_variables_overrides.yml"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ octavia_config_overrides }}"
-        config_type: "yaml"
-        list_extend: "{{ list_extend | default(omit) }}"
+    - name: Include vars
+      include_vars: "{{ rpco_base_dir }}/group_vars/octavia_all.yml"
     - name: Generate Cert Dirs
       file:
         path: "{{ item.path }}"
@@ -106,6 +98,51 @@
       args:
         chdir: "{{ cert_dir }}"
       when: generate_client_cert | bool == True
+    - name: Copy OSA files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dst }}"
+      with_items:
+       - { src: 'files/playbooks/inventory/env.d/octavia.yml', dst: '/etc/openstack_deploy/env.d/octavia.yml' }
+       - { src: 'files/group_vars/all/octavia.yml', dst: '/opt/rpc-openstack/group_vars/all/octavia.yml' }
+       - { src: 'files/playbooks/os-octavia-install.yml', dst: '/opt/rpc-openstack/openstack-ansible/playbooks/os-octavia-install.yml' }
+    - name: Update user_secrets file
+      blockinfile:
+        dest: /etc/openstack_deploy/user_osa_secrets.yml
+        marker: "### Octavia"
+        block: |
+          octavia_container_mysql_password:
+          octavia_service_password:
+          octavia_health_hmac_key:
+          octavia_rabbitmq_password:
+    - name: Update haproxy file
+      blockinfile:
+        dest: /opt/rpc-openstack/openstack-ansible/playbooks/vars/configs/haproxy_config.yml
+        marker: "### Octavia"
+        block: |
+          #
+            - service:
+                haproxy_service_name: octavia
+                haproxy_backend_nodes: "{% raw %}{{ groups['octavia_all'] | default([]) }}{% endraw %}"
+                haproxy_ssl: "{% raw %}{{ haproxy_ssl }}{% endraw %}"
+                haproxy_port: 9876
+                haproxy_balance_type: http
+                haproxy_backend_options:
+                  - "httpchk GET /"
+    - name: Update openstack_services
+      blockinfile:
+        dest: /opt/rpc-openstack/openstack-ansible/playbooks/defaults/repo_packages/openstack_services.yml
+        marker: "### Octavia"
+        block: |
+          octavia_git_repo: https://git.openstack.org/openstack/octavia
+          octavia_git_install_branch: 02926d8907335a4108998034bafb757418f4b5ac # HEAD of "stable/pike" as of 15.08.2017
+          octavia_git_project_group: octavia_all
+    - name: Update setup-openstack.yml
+      blockinfile:
+        dest: /opt/rpc-openstack/openstack-ansible/playbooks/setup-openstack.yml
+        marker: "### Octavia"
+        block: |
+          - include: os-octavia-install.yml
   vars:
     cert_dir: '/var/tmp/certs'
     cert_key_length_server: '4096' # key length
@@ -116,11 +153,4 @@
     cert_client_ca_subject: '/C=US/ST=Denial/L=Nowhere/O=Dis/CN=www.example.com' # change this tosomething more real
     cert_client_req_subject: '/C=US/ST=Denial/L=Nowhere/O=Dis/CN=www.example.com' # change this tosomething more real
     rpco_base_dir: '/opt/rpc-openstack'
-    generate_client_cert: True # generate selff signed client certs
-    octavia_config_overrides:
-      octavia_loadbalancer_topology: 'ACTIVE_STANDBY'
-      octavia_ca_private_key: "{{ cert_dir }}/private/cakey.pem"
-      octavia_ca_private_key_passphrase: 'changeme'
-      octavia_ca_certificate: "{{ cert_dir }}/ca_server_01.pem"
-      octavia_client_ca: "{{ cert_dir }}/ca_01.pem"
-      octavia_client_cert: "{{ cert_dir }}/client.pem"
+    generate_client_cert: True # generate self signed client certs

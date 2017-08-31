@@ -29,6 +29,11 @@
           glance_default_store: rbd
           nova_libvirt_images_rbd_pool: vms
       when: "{{ rpco_deploy_ceph | bool }}"
+    - name: Copy Octavia AIO
+      copy:
+        src: '../contrib/octavia/files/etc/openstack_deploy/conf.d/octavia.yml.aio'
+        dest: '/opt/rpc-openstack/openstack-ansible/etc/openstack_deploy/conf.d/octavia.yml.aio'
+      when: lookup('env', 'DEPLOY_OCTAVIA') == 'yes'
   vars:
     rpco_deploy_ceph: "{{ lookup('env', 'DEPLOY_CEPH') }}"
     rpco_deploy_hardening: "{{ lookup('env', 'DEPLOY_HARDENING') }}"
@@ -37,7 +42,7 @@
   include: "{{ lookup('env', 'OA_DIR') }}/tests/bootstrap-aio.yml"
   vars:
     bootstrap_host_apt_distribution_suffix_list: "{{ (lookup('env', 'RPCO_APT_ARTIFACTS_AVAILABLE') | bool) | ternary([], ['updates', 'backports']) }}"
-    scenario: "{% if lookup('env', 'DEPLOY_MAGNUM') == 'yes' %}magnum{% else %}{{ lookup('env', 'DEPLOY_CEPH') |bool |ternary('ceph','swift') }}{%endif%}"
+    scenario: "{% if lookup('env', 'DEPLOY_OCTAVIA') == 'yes' %}octavia{% else %}{{ lookup('env', 'DEPLOY_CEPH') |bool |ternary('ceph','swift') }}{%endif%}"
     bootstrap_host_user_variables_filename: "user_osa_variables_overrides.yml"
     bootstrap_host_user_secrets_filename: "user_osa_secrets.yml"
     uca_enable: no
@@ -51,7 +56,7 @@
         - name: neutron.yml.aio
         - name: nova.yml.aio
         - name: swift.yml.aio
-      magnum:
+      octavia:
         - name: cinder.yml.aio
         - name: glance.yml.aio
         - name: heat.yml.aio
@@ -59,7 +64,7 @@
         - name: keystone.yml.aio
         - name: neutron.yml.aio
         - name: nova.yml.aio
-        - name: magnum.yml.aio
+        - name: octavia.yml.aio
       ceph:
         - name: cinder.yml.aio
         - name: glance.yml.aio

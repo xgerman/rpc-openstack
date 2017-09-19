@@ -72,6 +72,12 @@ bash ${BASE_DIR}/scripts/update-secrets.sh
 ${OA_DIR}/scripts/pw-token-gen.py --file /etc/openstack_deploy/user_osa_secrets.yml
 ${OA_DIR}/scripts/pw-token-gen.py --file $RPCD_SECRETS
 
+# Prepare Octavia
+if [[ "${DEPLOY_OCTAVIA}" == "yes" ]]; then
+  run_ansible ${RPCD_DIR}/playbooks/octavia-get.yml
+  run_ansible /opt/rpc-octavia/playbooks/main.yml
+fi
+
 # ensure that the ELK containers aren't created if they're not
 # going to be used
 # NOTE: this needs to happen before ansible/openstack-ansible is first run
@@ -130,7 +136,6 @@ if [[ "${DEPLOY_OA}" == "yes" ]]; then
     popd
   fi
 
-
   # setup infrastructure
   run_ansible unbound-install.yml
 
@@ -162,6 +167,11 @@ if [[ "${DEPLOY_OA}" == "yes" ]]; then
   if [[ "${DEPLOY_RALLY}" == "yes" ]]; then
     # Deploy rally
     run_ansible os-rally-install.yml
+  fi
+
+  # Octavia
+  if [[ "${DEPLOY_OCTAVIA}" == "yes" ]]; then
+    run_ansible /opt/rpc-octavia/playbooks/os-octavia-install.yml
   fi
 fi
 

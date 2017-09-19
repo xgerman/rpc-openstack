@@ -16,5 +16,5 @@
   version: ef9068d8cde4fd8ea3ea83ea0b026137eb253233
 - name: os_octavia
   scm: git
-  src: https://github.com/openstack/openstack-ansible-os_octavia.git
-  version: f8c0f7689ecd9651b27a7bf58cbdac35e0c48793
+  src: https://github.com/rcbops/openstack-ansible-os_octavia.git
+  version: e776e626748ca2c1d0d78c8192c97b96b078d312

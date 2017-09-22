@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Rackspace US, Inc.
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+- name: Ironic post install config
+  hosts: utility_all[0]
+  tasks:
+    - name: Setup neutron network
+      shell: ". /root/openrc && neutron net-create --shared --provider:physical_network tftp --provider:network_type flat tftp"
 
-# The release tag to use
-# Note that this is set here so that the openstack_release override in osa_defaults
-# is able to use it.
-rpc_release: "r14.4.0"
+    - name: Setup neutron subnet
+      shell: ". /root/openrc && neutron subnet-create --name ironic-tftp --allocation-pool start=172.29.233.0,end=172.29.234.0  --dns-nameserver=4.4.4.4 tftp 172.29.232.0/22"
 
